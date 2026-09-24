@@ -120,6 +120,8 @@ export default function App() {
     }, 1500);
   }
 
+  const [showMoreContent, setShowMoreContent] = useState(false);
+
   if (!token) return <AuthScreen loading={authLoading} error={authError} onAuthenticated={setToken} />;
   if (loading) return <Centered><ActivityIndicator color="#078B92" size="large" /><Text style={styles.muted}>Loading competition</Text></Centered>;
   if (error || !competition) return <Centered><Text style={styles.errorTitle}>Something went wrong</Text><Text style={styles.muted}>{error}</Text><Pressable onPress={() => void load()} style={styles.retry}><Text style={styles.retryText}>Try again</Text></Pressable></Centered>;
@@ -135,7 +137,21 @@ export default function App() {
       <View style={responsiveStyles.deadlineCompact}><Text style={styles.deadlineIcon}>⌛</Text><Text style={responsiveStyles.deadlineLabelCompact}>Registration closes in</Text><Text adjustsFontSizeToFit numberOfLines={1} style={responsiveStyles.deadlineTimeCompact}>{remaining}</Text><Text style={responsiveStyles.hurryCompact}>◷ Hurry up!</Text></View>
       <Section title="Important Dates"><View style={styles.dateGrid}><DateItem icon="▣" label="Register Before" value={date(competition.registrationClosesAt)} time="11:50 PM" /><DateItem icon="➤" label="Submission Starts" value={date(competition.submissionStartsAt)} time="04:00 AM" /><DateItem icon="↥" label="Submission Ends" value={date(competition.submissionEndsAt)} time="11:55 PM" /><DateItem icon="♕" label="Result Date" value={date(competition.resultDate)} time="11:50 PM" /></View></Section>
       <Section title="Previous Winners"><ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.winnerRow}>{competition.winners.map((winner) => <View style={styles.winner} key={winner.name}><Image source={{ uri: winner.image }} style={styles.winnerImage} /><View><Text style={styles.winnerName}>{winner.name}</Text><Text style={styles.winnerPosition}>{winner.position}</Text></View></View>)}</ScrollView></Section>
-      <Section><View style={styles.tabs}>{tabs.map((item) => <Pressable key={item} onPress={() => setTab(item)} style={[styles.tab, tab === item && styles.activeTab]}><Text style={[styles.tabText, tab === item && styles.activeTabText]}>{item}</Text></Pressable>)}</View><Text style={styles.tabBody}>{tab === 'About Competition' ? competition.description : tab === 'Judging Parameters' ? competition.judgingParameters : competition.rules}</Text><Text style={styles.viewMore}>View more ⌄</Text></Section>
+      <Section>
+        <View style={styles.tabs}>
+          {tabs.map((item) => (
+            <Pressable key={item} onPress={() => { setTab(item); setShowMoreContent(false); }} style={[styles.tab, tab === item && styles.activeTab]}>
+              <Text style={[styles.tabText, tab === item && styles.activeTabText]}>{item}</Text>
+            </Pressable>
+          ))}
+        </View>
+        <Text numberOfLines={showMoreContent ? undefined : 3} style={styles.tabBody}>
+          {tab === 'About Competition' ? competition.description : tab === 'Judging Parameters' ? competition.judgingParameters : competition.rules}
+        </Text>
+        <Pressable onPress={() => setShowMoreContent(!showMoreContent)}>
+          <Text style={styles.viewMore}>{showMoreContent ? 'View less ⌃' : 'View more ⌄'}</Text>
+        </Pressable>
+      </Section>
       <Section title="Rewards  (All Positions)"><View>{competition.rewards.map((reward, index) => <View style={styles.reward} key={reward.position}><Text style={[styles.medal, index < 3 && styles.goldMedal]}>{index < 3 ? '●' : '☆'}</Text><Text style={styles.rewardPosition}>{reward.position}</Text><Text style={styles.rewardAmount}>{money(reward.amount)}</Text></View>)}</View></Section>
       <View style={styles.disclaimer}><Text style={styles.info}>i</Text><Text style={styles.disclaimerText}><Text style={styles.bold}>Disclaimer:</Text> Only contributions from paid participants will be considered for judging.</Text></View>
       <View style={responsiveStyles.infoRowCompact}><View style={responsiveStyles.howCompact}><Text style={styles.bigPlay}>▶</Text><View style={responsiveStyles.howCopy}><Text style={styles.infoTitle}>How will you receive{`\n`}prize money?</Text><Text style={styles.infoSub}>Watch video to know more</Text></View></View><View style={responsiveStyles.policyCompact}><Text style={responsiveStyles.policyLine}>♢ Refund policy</Text><Text style={responsiveStyles.policyLine}>♢ Secure payments powered by</Text><Text style={styles.razor}>Razorpay</Text></View></View>
