@@ -3,7 +3,7 @@ import { ActivityIndicator, Alert, Image, Modal, Pressable, RefreshControl, Safe
 import { StatusBar } from 'expo-status-bar';
 import type { Competition } from '@feedants/shared';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.35:4000';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || (typeof window !== 'undefined' && window.location?.hostname === 'localhost' ? 'http://localhost:4000' : 'http://192.168.1.38:4000');
 
 function countdown(target: string) {
   const remaining = Math.max(0, new Date(target).getTime() - Date.now());
