@@ -25,10 +25,10 @@ export async function seedCompetition() {
         entryFee: 99,
         judge: { name: 'Manju Dubey', role: 'Professional Kathak Dancer', experience: '12+ Years of Experience', image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=160&q=80' },
         winners: [
-          { name: 'Riya Shah', position: '1st Winner', image: 'https://images.unsplash.com/photo-1609357605129-26f69add5d6e?auto=format&fit=crop&w=120&q=80' },
-          { name: 'Aarav Mehta', position: '1st Winner', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&q=80' },
-          { name: 'Neha Verma', position: '2nd Winner', image: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=120&q=80' },
-          { name: 'Ishita Chopra', position: '3rd Winner', image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=120&q=80' }
+          { name: 'Riya Shah', position: '1st Winner', image: 'https://images.unsplash.com/photo-1609357605129-26f69add5d6e?auto=format&fit=crop&w=300&q=80' },
+          { name: 'Aarav Mehta', position: '1st Winner', image: 'https://images.unsplash.com/photo-1615109398623-88346a601842?auto=format&fit=crop&w=300&q=80' },
+          { name: 'Neha Verma', position: '2nd Winner', image: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=300&q=80' },
+          { name: 'Ishita Chopra', position: '3rd Winner', image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=300&q=80' }
         ],
         rewards: [{ position: '1st Winner', amount: 550 }, { position: '2nd Winner', amount: 300 }, { position: '3rd Winner', amount: 240 }, { position: '4th Winner', amount: 200 }, { position: '5th Winner', amount: 130 }, { position: '6th Winner', amount: 80 }],
         judgingParameters: 'Expression, technique, creativity, presentation and musicality.',
