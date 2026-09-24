@@ -4,108 +4,141 @@ A production-ready full-stack implementation of the Feedants Competition Details
 
 ---
 
-## 🎯 Evaluation Criteria & Implementation Mapping
+## 🔗 Submission Details
 
-### 1. Accuracy Compared with Design & UI Quality
-- **Pixel-Accurate Screen Layout**: Implemented the competition page matching the reference design (Page 3 of specification), including:
-  - Header with language selector (`ENG` / `हिंदी`).
-  - Competition Title, dynamic `Registered` status badge, Category tags (`Dance`, `Multi-Win`), Prize Pool (₹1,500), Entry Fee (₹99), and Booked spots progress bar (`1 / 20 Booked`).
-  - Judge card (Manju Dubey details & intro video action button).
-  - 1-second live interval countdown ticker (`01d : 06h : 28m : 32s`) with "Hurry up!" badge.
-  - 2x2 grid of Important Dates (Register Before, Submission Starts/Ends, Result Date).
-  - Previous Winners horizontal scroll list with position badges.
-  - Tabbed content switcher (*About Competition*, *Judging Parameters*, *Rules & Eligibility*).
-  - Rewards payout table (1st to 6th Winner amounts).
-  - Disclaimer banner, Razorpay refund policy info card, Referral link with copy button, and sticky bottom navigation bar.
-
-### 2. React Native Implementation & Modular Architecture
-- Componentized architecture cleanly separating UI components, screens, and types.
-- Native performance with smooth `ScrollView`, `RefreshControl` pull-to-refresh, responsive text scaling (`adjustsFontSizeToFit`), and zero hardcoded pixel traps.
-
-### 3. Backend Architecture & API Design
-- RESTful Express endpoints organized in `apps/api/src/competition.ts`, `auth.ts`, `payment.ts`, `monitoring.ts`.
-- **Authentication**: JWT token authorization with bcrypt password hashing (salt factor 12).
-- **Observability**: Exposes `/metrics` (Prometheus request counts & latency), `/health`, and `/ready` MongoDB database readiness endpoints.
-- **Rate Limiting**: `express-rate-limit` protection on authentication routes.
-
-### 4. MongoDB Data Modelling & Concurrency Handling
-- **Atomic Single-Query Concurrency Control**:
-  Registration (`POST /api/competitions/:id/register`) uses an atomic `findOneAndUpdate` operation with `$addToSet` and `$size` checks:
-  ```ts
-  await CompetitionModel.findOneAndUpdate(
-    {
-      _id: competitionId,
-      startsAt: { $lte: now },
-      endsAt: { $gt: now },
-      participantIds: { $ne: userId },
-      $expr: { $lt: [{ $size: '$participantIds' }, '$capacity'] }
-    },
-    { $addToSet: { participantIds: userId } },
-    { new: true }
-  );
-  ```
-- **Zero Race Conditions**: Guarantees under heavy concurrent load (e.g., thousands of simultaneous users) that capacity is never exceeded and double-booking is impossible.
-
-### 5. Genuine Razorpay Payments Integration
-- Server-side Razorpay order creation via official `razorpay` SDK (`POST /api/payments/competitions/:id/order`).
-- Web & Mobile Razorpay Checkout modal integrating official `checkout.js` JS popup with your API keys (`RAZORPAY_KEY_ID=rzp_test_TfnyIYKkvrbBqN`).
-- Supports UPI (GPay, PhonePe, Paytm), Credit/Debit Cards, Netbanking, and Wallets.
-- Idempotent Razorpay Webhook handler (`POST /api/payments/webhook`) validating `X-Razorpay-Signature` HMAC SHA-256 signatures and recording transaction logs.
-
-### 6. Correctness of Business Logic & Derived Lifecycles
-- Competition lifecycle (`upcoming`, `open`, `closed`) is **dynamically derived** from timestamps (`startsAt`, `endsAt`) rather than stored as mutable database state, preventing stale status data.
+* **GitHub Repository**: [https://github.com/Akshayvardhan/Feedants.git](https://github.com/Akshayvardhan/Feedants.git)
+* **Frontend Framework**: React Native (Expo SDK 57)
+* **Backend Framework**: Node.js + Express.js
+* **Database**: MongoDB (Mongoose ODM)
+* **Payment Gateway**: Razorpay (API Orders + Web Checkout Popup)
 
 ---
 
-## 🚀 Quick Start & How to Run
+## 🚀 Quick Start & Running Instructions
 
 ### Prerequisites
-- Node.js 20+
-- npm 10+
-- MongoDB instance (Local or MongoDB Atlas URI)
+- **Node.js**: 20+ (Required for Expo SDK 57)
+- **npm**: 10+
+- **MongoDB**: Local MongoDB server running on `mongodb://127.0.0.1:27017/feedants` or a MongoDB Atlas URI.
 
-### 1. Install Dependencies & Configure Environment
+### 1. Installation & Setup
 ```bash
+# Clone repository
+git clone https://github.com/Akshayvardhan/Feedants.git
+cd Feedants
+
+# Install monorepo dependencies
 npm install
+
+# Setup environment configuration
 cp .env.example .env
 ```
 
-### 2. Start API Server
+### 2. Start the Backend API
 ```bash
 npm run dev:api
 ```
-The API listens on `http://localhost:4000` and automatically seeds the default `urban-textures` competition on first launch.
+* **Endpoint**: Runs on `http://localhost:4000`.
+* **Database Seeding**: Automatically seeds the default `urban-textures` competition (*"Feedants Classical Dance"*) on initial startup.
 
-### 3. Start React Native App
-In a new terminal:
+### 3. Start the React Native Expo Application
+In a separate terminal window:
 ```bash
 npm run dev:mobile
 ```
-- **Web Browser**: Open [http://localhost:8081](http://localhost:8081) for instant browser preview.
-- **Mobile Device**: Scan the terminal QR code with **Expo Go** (iOS/Android).
+* **Web Preview**: Open [http://localhost:8081](http://localhost:8081) in Google Chrome, Safari, or Arc.
+* **Mobile Phone / Simulator**: Scan the terminal QR code with **Expo Go** (iOS / Android) or press `i` for iOS Simulator / `a` for Android Emulator.
 
 ---
 
-## 🧪 Verification & Automated Testing
+## ⚙️ Required Environment Variables (`.env`)
 
-Run the type check and full automated test suite:
+Create a `.env` file in the project root:
+
+```env
+# Server Port
+PORT=4000
+
+# Database URI
+MONGODB_URI=mongodb://127.0.0.1:27017/feedants
+
+# Authentication Secret
+JWT_SECRET=a819e81e81e175baf03fcbcd3f71a6d2a834d92a7230482d1ea0aa87dd57f4dc
+
+# Razorpay Payment Credentials
+RAZORPAY_KEY_ID=rzp_test_TfnyIYKkvrbBqN
+RAZORPAY_KEY_SECRET=s4AJWZ2vTjF3e8i5QlukkE9A
+RAZORPAY_WEBHOOK_SECRET=068fe46d55d0cc8a511197cb91f2bb33f9a542c64e0c97857d69530203877e82
+```
+
+---
+
+## 🧪 Verification & Automated Tests
+
+Run the TypeScript build check and full automated integration test suite:
 
 ```bash
-# 1. Type Check across Monorepo
+# 1. Type check across all monorepo workspaces
 npm run build
 
-# 2. Run Integration & Lifecycle Unit Tests
+# 2. Run unit and concurrency integration tests
 npm test
 ```
 
-### What `npm test` verifies:
-- `src/competition.test.ts`: Derived lifecycle status calculations (`upcoming`, `open`, `closed`).
-- `src/competition.integration.test.ts`: High-concurrency integration test sending **12 parallel registration requests** to a 1-slot competition. Confirms that MongoDB atomic operations allow exactly 1 winner, return `FULL` for the remaining 11, and reject repeat requests with `ALREADY_REGISTERED`.
+### What `npm test` Verifies:
+* `src/competition.test.ts`: Validates dynamic lifecycle status calculations (`upcoming`, `open`, `closed`).
+* `src/competition.integration.test.ts`: Sends **12 parallel registration requests** simultaneously to a 1-slot competition. Confirms that MongoDB atomic operations allow exactly 1 winner, return `FULL` for the remaining 11, and reject duplicate attempts with `ALREADY_REGISTERED`.
 
 ---
 
-## 🏗️ Architectural Trade-offs & Production Scaling
+## 📌 Important Assumptions Made
 
-1. **Capacity Storage Strategy**: For current competition scale, storing `participantIds` on the document enables fast single-query atomic updates. For massive competitions (100k+ users), registrations can be offloaded to a `Registrations` collection while retaining an atomic `participantCount` counter on the main document.
-2. **Distributed Rate Limiting**: In a multi-region deployment, `express-rate-limit` would be backed by a Redis store.
-3. **CDN Assets**: Demo images use high-resolution Unsplash assets; production would serve compressed assets from AWS CloudFront or Cloudflare R2 CDN.
+1. **User Authentication Flow**: User authentication uses email/password credentials with bcrypt password hashing (cost factor 12) and signed JSON Web Tokens (JWT). The client registers an account before interacting with competition registration.
+2. **Competition Lifecycle Derivation**: Competition lifecycle (`upcoming`, `open`, `closed`) is **dynamically derived** on read from `startsAt` and `endsAt` timestamps, preventing status drift or out-of-sync cron state.
+3. **Data Availability**: Seeding is idempotent and ensures that the competition details, judges, previous winners, and reward tiers exist upon application launch.
+
+---
+
+## 💡 Major Technical Decisions
+
+1. **Atomic Concurrency Control (Zero Race Conditions)**:
+   Registration uses a single MongoDB `findOneAndUpdate` operation with `$addToSet` and `$size` checks:
+   ```ts
+   await CompetitionModel.findOneAndUpdate(
+     {
+       _id: competitionId,
+       startsAt: { $lte: now },
+       endsAt: { $gt: now },
+       participantIds: { $ne: userId },
+       $expr: { $lt: [{ $size: '$participantIds' }, '$capacity'] }
+     },
+     { $addToSet: { participantIds: userId } },
+     { new: true }
+   );
+   ```
+   This guarantees that even under thousands of concurrent registration attempts, overbooking is mathematically impossible without requiring distributed locks.
+
+2. **Genuine Razorpay Integration**:
+   - Backend creates server-side orders via the official `razorpay` SDK (`POST /api/payments/competitions/:id/order`).
+   - Web frontend dynamically loads official `https://checkout.razorpay.com/v1/checkout.js` and opens the genuine Razorpay Checkout Popup window (`rzp_test_TfnyIYKkvrbBqN`).
+   - Webhook endpoint (`POST /api/payments/webhook`) validates `X-Razorpay-Signature` HMAC SHA-256 signatures and logs events idempotently.
+
+3. **Observability & Health Probes**:
+   - `/health`: Liveness probe.
+   - `/ready`: Database connectivity readiness probe.
+   - `/metrics`: Prometheus-compatible endpoint exposing request latency, throughput, and Node.js process metrics.
+
+---
+
+## ⚖️ Trade-offs Considered
+
+1. **Embedded vs. Separate Participant Collection**: Storing `participantIds` array directly on the Competition document optimizes single-query reads and atomic updates for normal competition sizes. For ultra-high volume scale (100k+ registrations per event), registrations would be decoupled into a separate `Registrations` collection with a counter.
+2. **In-Memory Rate Limiting**: `express-rate-limit` is configured in-memory for simplicity. A distributed production environment with multiple API instances would back this with Redis.
+
+---
+
+## 🚀 Future Production Improvements
+
+1. **Refresh Token Rotation**: Implement short-lived access tokens (15m) paired with HTTP-only refresh tokens stored in Redis.
+2. **CDN Media Asset Optimization**: Serve judge avatars, winner media, and video streams through AWS CloudFront or Cloudflare R2 with image optimization.
+3. **Reconciliation Cron Job**: Add an automated background job for Razorpay order state reconciliation in cases where client browser tabs close before webhook delivery.
